@@ -7,30 +7,10 @@
     <!-- Include other necessary scripts and CSS -->
 </head>
 <body>
-<!-- Form for creating a new product -->
-{# @TODO: implement with the Vue 3 component using composition API #}
-{# @TODO:
-    Describe data format sent to backend and expected response
-    Write your code using this abstract API endpoint
-#}
-<form action="{{ path('product_create') }}" method="post">
-    <div>
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
-    </div>
-    <div>
-        <label for="price">Price:</label>
-        <input type="number" id="price" name="price" step="0.01" required>
-    </div>
-    <div>
-        <label for="description">Description:</label>
-        <textarea id="description" name="description" required></textarea>
-    </div>
-    <button type="submit">Create Product</button>
-</form>
 
 <!-- Vue component for product table -->
 <div id="product-app">
+    <product-create></product-create>
     <product-table></product-table>
 </div>
 

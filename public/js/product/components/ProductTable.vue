@@ -1,11 +1,13 @@
 <template>
   <div>
-    <input type="text" placeholder="Search..." v-model="searchTerm" @input="filterProducts">
-    <table>
+    <input type="text" placeholder="$t('search')" @input="updateSearch">
+    <p v-if="store.isLoading">Loading...</p>
+    <p v-if="store.error">{{ store.error }}</p>
+    <table v-if="!store.isLoading && !store.error">
       <tr>
-        <th @click="sortBy('name')">Name</th>
-        <th @click="sortBy('price')">Price</th>
-        <th>Description</th>
+        <th @click="sortBy('name')">{{ $t('name') }}</th>
+        <th @click="sortBy('price')">{{ $t('price') }}</th>
+        <th>{{ $t('description') }}</th>
       </tr>
       <tr v-for="product in filteredProducts" :key="product.id">
         <td>{{ product.name }}</td>
@@ -17,36 +19,46 @@
 </template>
 
 <script>
-// @TODO: rewrite with Vue 3 using composition API, enhance code
-// @TODO: add translations support for the static fields inside markup
+import { ref, computed, watch } from 'vue';
+import { useStore } from 'pinia';
+import { debounce } from 'lodash';
+
 export default {
-  data() {
-    return {
-      products: [],
-      filteredProducts: [],
-      searchTerm: '',
-      currentSortField: null
+  setup() {
+    const store = useStore('main');
+    const searchTerm = ref('');
+    const currentSortField = ref(null);
+
+    const products = computed(() => store.allProducts);
+    const filteredProducts = computed(() => {
+      let result = products.value;
+
+      // filter
+      if (searchTerm.value) {
+        const term = searchTerm.value.toLowerCase();
+        result = result.filter(product => product.name.toLowerCase().includes(term));
+      }
+
+      // sort
+      if (currentSortField.value) {
+        result = result.sort((a, b) => a[currentSortField.value] > b[currentSortField.value] ? 1 : -1);
+      }
+
+      return result;
+    });
+
+    const sortBy = (field) => {
+      currentSortField.value = field;
     };
-  },
-  mounted() {
-    this.$store.dispatch('fetchProducts');
-  },
-  computed: {
-    // Use the getter to get products
-    products() {
-      return this.$store.getters.allProducts;
-    },
-    filteredProducts() {
-      // @TODO: implement
-    }
-  },
-  methods: {
-    filterProducts() {
-      // @TODO: implement filtering logic based on searchTerm
-    },
-    sortBy(field) {
-      // @TODO: implement sorting logic
-    }
+
+    // fetch products when component is mounted
+    store.fetchProducts();
+
+    const updateSearch = debounce((e) => {
+      searchTerm.value = e.target.value;
+    }, 350);
+
+    return { searchTerm, filteredProducts, sortBy, updateSearch, store };
   }
 };
 </script>

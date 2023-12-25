@@ -1,33 +1,41 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
+import { defineStore } from 'pinia';
+// pinia, is a standalone library and does not require Vue to be explicitly imported here
 
-Vue.use(Vuex);
-
-// @TODO: Rewrite with Pinia
-export default new Vuex.Store({
-  state: {
-    products: []
-  },
+export const useStore = defineStore({
+  id: 'main',
+  state: () => ({
+    products: [],
+    isLoading: false,
+    error: null
+  }),
   getters: {
-    allProducts: state => {
-      return state.products;
+    allProducts() {
+      return this.products;
     },
-    // Additional getters can be added here if needed
-  },
-  mutations: {
-    setProducts(state, products) {
-      state.products = products;
-    }
   },
   actions: {
-    fetchProducts({ commit }) {
-      // Replace with the actual API call
-      fetch('/api/products')
-        .then(response => response.json())
-        .then(data => {
-          commit('setProducts', data);
-        })
-        .catch(error => console.error('Error fetching products:', error));
+    setProducts(products) {
+      this.products = products;
+    },
+    setLoading(isLoading) {
+      this.isLoading = isLoading;
+    },
+    setError(error) {
+      this.error = error;
+    },
+    async fetchProducts() {
+      this.setLoading(true);
+      this.setError(null);
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        this.setProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        this.setError('Error fetching products');
+      } finally {
+        this.setLoading(false);
+      }
     }
   }
 });
